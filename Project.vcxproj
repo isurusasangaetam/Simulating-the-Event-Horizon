@@ -156,6 +156,7 @@
     <ClCompile Include="Environment.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Spaceship.cpp" />
+    <ClCompile Include="Tesseract.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -163,6 +164,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Environment.h" />
     <ClInclude Include="Spaceship.h" />
+    <ClInclude Include="Tesseract.h" />
     <ClInclude Include="TextureLoader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

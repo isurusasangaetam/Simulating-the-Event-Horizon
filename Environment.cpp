@@ -20,14 +20,12 @@ void Environment::buildProceduralGalaxy(GalaxyData& g) {
         float angle = t * 12.0f;
         float armOffset = (p % numArms) * M_PI;
 
-        // FIXED: Restored missing subtraction operators to center the random scatter
         float scatterX = (((float)rand() / RAND_MAX) - 0.5f) * 0.8f;
         float scatterZ = (((float)rand() / RAND_MAX) - 0.5f) * 0.8f;
 
         float radius = t * 2.0f;
 
         particle.x = (radius * cos(angle + armOffset)) + scatterX;
-        // FIXED: Restored subtraction to keep the Y-axis tight and form a flat disk
         particle.y = (((float)rand() / RAND_MAX) - 0.5f) * 0.15f * (1.0f - t);
         particle.z = (radius * sin(angle + armOffset)) + scatterZ;
 

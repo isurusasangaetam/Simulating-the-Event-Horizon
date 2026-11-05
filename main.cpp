@@ -6,7 +6,9 @@
 #include "BlackHole.h"
 #include "TextureLoader.h"
 #include "Environment.h"
+#include "Tesseract.h"
 
+// NEW PHASE 1 VARIABLES
 Spaceship playerShip;
 Camera mainCamera;
 BlackHole gargantua;
@@ -15,6 +17,10 @@ Environment deepSpace;
 bool keys[256] = { false };
 bool specialKeys[256] = { false };
 int winWidth = 1280, winHeight = 720;
+
+// NEW PHASE 2 VARIABLES
+Tesseract tesseractEnv;
+int gameState = 0; // 0 = Deep Space, 1 = Tesseract
 
 void init(void) {
     glClearColor(0.01f, 0.01f, 0.015f, 1.0f);
@@ -27,6 +33,9 @@ void init(void) {
     GLuint texSolar = TextureLoader::loadTex("solar.jpg");
     GLuint texMetal = TextureLoader::loadTex("metal.jpg");
     playerShip.initTextures(texSolar, texMetal);
+
+    GLuint texBookshelf = TextureLoader::loadTex("bookshelf.jpg");
+    tesseractEnv.init(texBookshelf);
 }
 
 void display(void) {
@@ -34,21 +43,38 @@ void display(void) {
     glLoadIdentity();
 
     mainCamera.applyView(playerShip);
-    deepSpace.draw();
-    gargantua.draw(mainCamera.relCamYaw, mainCamera.relCamPitch);
 
+    // ACTIVATE LIGHTING
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glEnable(GL_COLOR_MATERIAL);
 
-    GLfloat lightPos[] = { 1.0f, 0.8f, 1.0f, 0.0f };
-    GLfloat lightDiffuse[] = { 1.2f, 1.2f, 1.2f, 1.0f };
-    GLfloat lightAmbient[] = { 0.3f, 0.3f, 0.35f, 1.0f };
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
+    if (gameState == 0) {
+        // --- PHASE 1: DEEP SPACE ---
+        // Ensure Fog is OFF in Space
+        glDisable(GL_FOG);
 
-    playerShip.draw();
+        deepSpace.draw();
+        gargantua.draw(mainCamera.relCamYaw, mainCamera.relCamPitch);
+
+        GLfloat lightPos[] = { 1.0f, 0.8f, 1.0f, 0.0f };
+        glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+
+        playerShip.draw();
+    }
+    else {
+        // --- PHASE 2: THE TESSERACT ---
+
+        GLfloat fogColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        glEnable(GL_FOG);
+        glFogi(GL_FOG_MODE, GL_EXP2);
+        glFogfv(GL_FOG_COLOR, fogColor);
+        glFogf(GL_FOG_DENSITY, 0.002f);
+
+        tesseractEnv.draw();
+
+        playerShip.draw();
+    }
 
     glDisable(GL_LIGHTING);
     glDisable(GL_LIGHT0);
@@ -59,7 +85,40 @@ void display(void) {
 
 void update(int value) {
     playerShip.update(keys, specialKeys);
-    gargantua.updateAnimation();
+
+    if (gameState == 0) {
+        gargantua.updateAnimation();
+
+        // THE TRANSITION TRIGGER
+        // THE TRANSITION TRIGGER inside main.cpp's update()
+        float distToHole = sqrt(pow(playerShip.x, 2) + pow(playerShip.y, 2) + pow(playerShip.z, 2));
+        if (distToHole < 46.0f) {
+            gameState = 1;
+
+            //to activate Tesseract Collision
+            playerShip.inTesseract = true;
+
+            playerShip.x = 0.0f;
+            playerShip.y = 0.0f;
+            playerShip.z = 0.0f;
+            playerShip.velX = 0.0f;
+            playerShip.velY = 0.0f;
+            playerShip.velZ = 0.0f;
+        }
+    }
+    else if (gameState == 1) {
+        // THE NON-EUCLIDEAN TRICK (Infinite Labyrinth)
+        float boundary = tesseractEnv.roomSize / 2.0f;
+
+        if (playerShip.x > boundary) playerShip.x -= tesseractEnv.roomSize;
+        if (playerShip.x < -boundary) playerShip.x += tesseractEnv.roomSize;
+
+        if (playerShip.y > boundary) playerShip.y -= tesseractEnv.roomSize;
+        if (playerShip.y < -boundary) playerShip.y += tesseractEnv.roomSize;
+
+        if (playerShip.z > boundary) playerShip.z -= tesseractEnv.roomSize;
+        if (playerShip.z < -boundary) playerShip.z += tesseractEnv.roomSize;
+    }
 
     glutPostRedisplay();
     glutTimerFunc(16, update, 0);
@@ -72,7 +131,6 @@ void mouseMotion(int x, int y) {
 
     float sensitivity = 0.005f;
 
-    // FIXED: Restored the missing minus (-) signs so the mouse works again!
     mainCamera.mouseYawOffset -= (float)(x - centerX) * sensitivity;
     mainCamera.mousePitch -= (float)(y - centerY) * sensitivity;
 
@@ -109,7 +167,6 @@ void reshape(GLsizei w, GLsizei h) {
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    // THE FIX: Increased the far clipping plane from 500.0 to 20000.0
     gluPerspective(55.0, (GLfloat)w / (GLfloat)h, 0.1, 20000.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();

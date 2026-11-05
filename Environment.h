@@ -33,7 +33,6 @@ private:
 
 public:
     Environment();
-    // Removed the texture parameter entirely!
     void init();
     void draw();
 };

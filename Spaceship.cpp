@@ -22,6 +22,7 @@ Spaceship::Spaceship() {
     isDocked = true;
     spinEndurance = false;
     endRingRotation = 0.0f;
+    inTesseract = false;
 }
 
 void Spaceship::initTextures(GLuint solar, GLuint metal) {
@@ -38,43 +39,35 @@ void Spaceship::update(bool keys[256], bool specialKeys[256]) {
         if (endRingRotation > 360.0f) endRingRotation -= 360.0f;
     }
 
-    // 1. ROTATIONAL STEERING FIX
     float turnSpeed = isDocked ? 0.008f : 0.03f;
-
-    // A turns Left (increases yaw), D turns Right (decreases yaw)
     if (keys['a'] || keys['A']) { yaw += turnSpeed; }
     if (keys['d'] || keys['D']) { yaw -= turnSpeed; }
 
-    // 2. FORWARD/BACKWARD THRUST
     float fwdX = -sin(yaw) * cos(pitch);
     float fwdY = sin(pitch);
     float fwdZ = -cos(yaw) * cos(pitch);
-
     float thrust = isDocked ? 0.008f : 0.02f;
 
-    // W pushes you directly along the nose, S pushes you in reverse
     if (keys['w'] || keys['W']) { velX += fwdX * thrust; velY += fwdY * thrust; velZ += fwdZ * thrust; }
     if (keys['s'] || keys['S']) { velX -= fwdX * thrust; velY -= fwdY * thrust; velZ -= fwdZ * thrust; }
-
-    // Space/C for Vertical Hover
     if (keys[' '] || specialKeys[GLUT_ACTIVE_SHIFT]) { velY += thrust; }
     if (keys['c'] || keys['C'] || specialKeys[GLUT_ACTIVE_CTRL]) { velY -= thrust; }
 
-    // Space Friction
     velX *= 0.92f; velY *= 0.92f; velZ *= 0.92f;
 
-    // Move Active Ship
     x += velX; y += velY; z += velZ;
 
     if (!isDocked) {
+        auxVelX *= 0.92f; auxVelY *= 0.92f; auxVelZ *= 0.92f;
         auxX += auxVelX; auxY += auxVelY; auxZ += auxVelZ;
     }
 
-    // NEW: We multiplied the 4.6f boundary by 10 to match the scaled Black Hole!
-    float distToHole = sqrt(x * x + y * y + z * z);
-    if (distToHole < 46.0f) {
-        float pushFactor = 46.0f / distToHole;
-        x *= pushFactor; y *= pushFactor; z *= pushFactor;
+    if (!inTesseract) {
+        float distToHole = sqrt(x * x + y * y + z * z);
+        if (distToHole < 46.0f) {
+            float pushFactor = 46.0f / distToHole;
+            x *= pushFactor; y *= pushFactor; z *= pushFactor;
+        }
     }
 }
 
@@ -86,8 +79,6 @@ void Spaceship::draw() {
         // Draw Active Endurance
         glTranslatef(x, y, z);
 
-        // THE FIX: Removed the negative sign from 'yaw'. 
-        // Now the 3D model's nose perfectly matches the math vector!
         glRotatef(yaw * (180.0f / M_PI), 0.0f, 1.0f, 0.0f);
         glRotatef(pitch * (180.0f / M_PI), 1.0f, 0.0f, 0.0f);
 
@@ -111,7 +102,6 @@ void Spaceship::draw() {
         glPushMatrix();
         glTranslatef(auxX, auxY, auxZ);
 
-        // THE FIX: Removed negative sign from auxYaw
         glRotatef(auxYaw * (180.0f / M_PI), 0.0f, 1.0f, 0.0f);
         glRotatef(auxPitch * (180.0f / M_PI), 1.0f, 0.0f, 0.0f);
         glScalef(SCALE, SCALE, SCALE);
@@ -127,7 +117,6 @@ void Spaceship::draw() {
         glPushMatrix();
         glTranslatef(x, y, z);
 
-        // THE FIX: Removed negative sign from yaw
         glRotatef(yaw * (180.0f / M_PI), 0.0f, 1.0f, 0.0f);
         glRotatef(pitch * (180.0f / M_PI), 1.0f, 0.0f, 0.0f);
         glScalef(SCALE, SCALE, SCALE);

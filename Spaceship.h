@@ -19,6 +19,8 @@ public:
     bool spinEndurance;
     float endRingRotation;
 
+    bool inTesseract;
+
     GLuint texSolar, texMetal;
     GLUquadric* quadric;
 

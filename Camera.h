@@ -5,10 +5,9 @@
 
 class Camera {
 public:
-    float relCamYaw;
-    float relCamPitch;
+    float relCamYaw = 0.0f;
+    float relCamPitch = 0.0f;
 
-    // NEW: The camera now remembers its own mouse offsets!
     float mouseYawOffset = 0.0f;
     float mousePitch = 0.4f;
 

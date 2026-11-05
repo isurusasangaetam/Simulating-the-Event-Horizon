@@ -39,6 +39,9 @@
     <ClCompile Include="Environment.cpp">
       <Filter>Source Files\Lib</Filter>
     </ClCompile>
+    <ClCompile Include="Tesseract.cpp">
+      <Filter>Source Files\Lib</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TextureLoader.h">
@@ -54,6 +57,9 @@
       <Filter>Source Files\Lib</Filter>
     </ClInclude>
     <ClInclude Include="Environment.h">
+      <Filter>Source Files\Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="Tesseract.h">
       <Filter>Source Files\Lib</Filter>
     </ClInclude>
   </ItemGroup>
